@@ -61,6 +61,7 @@ const checkUsernameExists = async (req, res, next) => {
   if (!usernameExists) {
     next({ status: 401, message: "Invalid credentials" })
   } else {
+    req.userToCompare = usernameExists;
     next(); 
   }
   /*
@@ -76,19 +77,26 @@ const checkUsernameExists = async (req, res, next) => {
 const validateRoleName = async(req, res, next) => {
   const {role_name} = req.body;
 
-  const roleNameIsValid = await db("roles").where("role_name",role_name).first();
-  const trimmedName = roleNameIsValid.trim(); 
-
-  if (!trimmedName) {
+  if (!role_name || role_name.trim().length === 0) {
     req.role_name = "student";
-  } else if (trimmedName === "admin") {
-    next({status : 422, message : "Role name can not be admin"})
-  } else if (trimmedName.length > 32) {
-    next({status : 422, message : "Role name can not be longer than 32 chars"})
+    next();
   } else {
-    req.role_name = trimmedName;
-    next(); 
+    const roleNameIsValid = await db("roles").where("role_name",role_name).first();
+    if (roleNameIsValid) {
+      req.role_name = roleNameIsValid.role_name.trim();
+      next();
+    } else {
+      req.role_name = role_name.trim();
+      next(); 
+    }
+    if (role_name.trim() === "admin") {
+      next({status : 422, message : "Role name can not be admin"})
+    }
+    if (role_name.trim().length > 32) {
+      next({status : 422, message : "Role name can not be longer than 32 chars"})
+    } 
   }
+  
   /*
     If the role_name in the body is valid, set req.role_name to be the trimmed string and proceed.
 
