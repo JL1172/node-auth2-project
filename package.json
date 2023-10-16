@@ -25,6 +25,7 @@
     "helmet": "^5.0.2",
     "jsonwebtoken": "^9.0.2",
     "knex": "^2.0.0",
+    "morgan": "^1.10.0",
     "sqlite3": "^5.0.8"
   },
   "repository": {
